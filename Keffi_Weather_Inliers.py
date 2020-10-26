@@ -8,16 +8,15 @@ Created on Thu Oct 22 14:20:13 2020
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-
-start_date = "2020-01-01 00:00:00"
-end_date = "2020-01-02 23:00:00"
-dataToPlot = 'Wind_Speed'
+start_date = "2019-01-01 00:00:00"
+end_date = "2020-01-01 23:00:00"
+dataToPlot = 'Pressure'
 
 df = pd.read_excel('Keffi_Weather_Combined_Updated.xlsx')
 p = pd.date_range(start='1/1/2014',periods=len(df),freq='1H' )
 df.set_index(p,inplace=True)
 
-rng = df[start_date:end_date]
+rng = df[start_date:end_date].dropna(how='any')
 
 temperature = rng.Temperature
 dewPoint = rng.Dew_Point
@@ -26,11 +25,12 @@ wind = rng.Wind
 windSpeed = rng.Wind_Speed
 windGust = rng.Wind_Gust
 pressure = rng.Pressure
-precip = rng.Precip
+precip = rng.Precipitation
 condition = rng.Condition
 date_time = rng.Date_Time
 
-#print(temperature)
+#print(date_time)
+
 df['Temperature'] = temperature
 df['Dew_Point'] = dewPoint
 df['Humidity'] = humidity
@@ -62,7 +62,10 @@ windGust2 = windGust1.str.extract(r'([0-9]+)')
 pressure2 = pressure1.str.extract(r'([\d\.\d]+)')
 precip2 = precip1.str.extract(r'([\d\.\d]+)')
 condition2 = condition1
-date_time2 = date_time1
+date_time2 = date_time1.str.extract(r'(^.{0,16})')
+
+#p = wind2.str.extract(r'([a-z]+)')
+#print(p)
 
 df['Temperature'] = temp2
 df['Dew_Point'] = dewP2
@@ -85,12 +88,12 @@ pressure3 = df['Pressure'].dropna(how='any').astype('str')
 precip3 = df['Precipitation'].dropna(how='any').astype('str')
 condition3 = df['Condition'].dropna(how='any').astype('str')
 date_time3 = df['Date_Time'].dropna(how='any').astype('str')
-#print(date_time3)
+
+
 # Temperature and Dew Point in Celsius
 temp = (temp3.astype('float') -32) * (5/9)
 dewP = (dewP3.astype('float') - 32) * (5/9)
-#print(temp)
-#print(len(temp))
+
 hum = humidity3.astype('int')
 w = wind3
 
@@ -101,7 +104,12 @@ press = pressure3.astype('float')
 preC = precip3.astype('float')
 c = condition3
 
+date = date_time3.str.extract(r'(^.{0,16})')
+
 inliers= []
+
+#df['Pressure']= inliers
+#print(df['Pressure'])
 #
 def detect_inliers(data):
     threshold = 3
@@ -202,6 +210,9 @@ elif(dataToPlot == 'Pressure'):
         print('Median is: ',np.median(result).round(2))
         print('Max value is:',np.max(result).round(2))
         print('Min value is:',np.min(result).round(2))
+#        a = pd.Series(result)
+#        print(a)
+#        print(date_time3)
 elif(dataToPlot == 'Precipitation'):
     result = detect_inliers(preC)
     if result ==[]:
@@ -222,43 +233,41 @@ elif(dataToPlot == 'Wind'):
     print()
 else:
     print("Enter a correct data to process")
-    
 
 if(dataToPlot == 'Temperature'):
-    plt.plot(result,"-o")
+    plt.plot(temp,"-o")
     plt.xlabel("Date")
-    plt.ylabel("Temperature(C)")
-    
+    plt.ylabel("Temperature(C)") 
 elif(dataToPlot == 'Dew_Point'):
-    plt.plot(result,"-o")
+    plt.plot(date_time3,dewP,"-o")
     plt.xlabel("Date")
     plt.ylabel("Dew Point(C)")
 elif(dataToPlot == 'Humidity'):
-    plt.plot(result,"-o")
+    plt.plot(date_time3,hum,"-o")
     plt.xlabel("Date")
     plt.ylabel("Humidity(%)")
 elif(dataToPlot == 'Wind'):
-    plt.plot(w,"-o")
+    plt.plot(date_time3,w,"-o")
     plt.xlabel("Date")
     plt.ylabel("Wind")
 elif(dataToPlot == 'Wind_Speed'):
-    plt.plot(result,"-o")
+    plt.plot(date_time3,wS,"-o")
     plt.xlabel("Date")
     plt.ylabel("Wind Speed(kmh)")
 elif(dataToPlot == 'Wind_Gust'):
-    plt.plot(result,"-o")
+    plt.plot(date_time3,wG,"-o")
     plt.xlabel("Date")
     plt.ylabel("Wind Gust(kmh)")
 elif(dataToPlot == 'Pressure'):
-    plt.plot(result,"-o")
+    plt.plot(date_time3,press,"-o")
     plt.xlabel("Date")
     plt.ylabel("Pressure(in)")
 elif(dataToPlot == 'Precipitation'):
-    plt.plot(result,"-o")
+    plt.plot(date_time3,precip,"-o")
     plt.xlabel("Date")
     plt.ylabel("Precipitation(in)")
 elif(dataToPlot == 'Condition'):
-    plt.plot(c,"-o")
+    plt.plot(date_time3,c,"-o")
     plt.xlabel("Date")
     plt.ylabel("Condition")    
 else:
